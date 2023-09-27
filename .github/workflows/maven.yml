@@ -29,16 +29,16 @@ jobs:
         cache: maven
     - name: Install Google Chrome
       run: |
-        Invoke-WebRequest -Uri 'https://dl.google.com/chrome/win/stable/GoogleChromeStandaloneEnterprise64.msi' -OutFile 'chrome_installer.msi'
-        Start-Process -FilePath 'msiexec.exe' -ArgumentList '/i', 'chrome_installer.msi', '/quiet', '/norestart' -Wait
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
 
     - name: Install ChromeDriver
       run: |
-        Invoke-WebRequest -Uri 'https://chromedriver.storage.googleapis.com/LATEST_RELEASE' -OutFile 'chromedriver_version.txt'
-        $latestVersion = Get-Content -Path 'chromedriver_version.txt'
-        Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/$latestVersion/chromedriver_win32.zip" -OutFile 'chromedriver.zip'
-        Expand-Archive -Path 'chromedriver.zip' -DestinationPath $env:ProgramFiles'\ChromeDriver'
-        [System.Environment]::SetEnvironmentVariable('PATH', "$env:ProgramFiles\ChromeDriver;" + [System.Environment]::GetEnvironmentVariable('PATH', [System.EnvironmentVariableTarget]::Machine), [System.EnvironmentVariableTarget]::Machine)
+        LATEST_VERSION=$(curl -s https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
+        wget https://chromedriver.storage.googleapis.com/$LATEST_VERSION/chromedriver_linux64.zip
+        unzip chromedriver_linux64.zip
+        chmod +x chromedriver
+        sudo mv chromedriver /usr/local/bin/
     - name: Build with Maven
       run: mvn clean verify -Dtesting.dtd.http=true
 
